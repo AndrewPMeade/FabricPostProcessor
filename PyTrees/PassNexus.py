@@ -54,6 +54,7 @@ class PassNexus:
 			BeginTreesRE = re.compile("\s*begin\s+trees", re.IGNORECASE)
 			EndTreesRE = re.compile("\s*(end|endblock)", re.IGNORECASE)
 			TaxaRE = re.compile("\s*(-?[0-9]+)\s+(.+)")
+#			TaxaRE = re.compile(r"\s*(\[.+\])*\s*(-?[0-9]+)\s+(.+)")
 			TreeRE = re.compile("^\s*((u|r)*(tree))\s+", re.IGNORECASE)
 
 			FIn = open(FName, "r")
@@ -61,7 +62,7 @@ class PassNexus:
 			for Line in FIn:
 
 				Line = Line.rstrip()
-#				Line = re.sub("\[.+?\]", '', Line)
+				Line = re.sub("\[.+?\]", '', Line)
 
 				BeginMatch = BeginTreesRE.match(Line)
 				if BeginMatch:
