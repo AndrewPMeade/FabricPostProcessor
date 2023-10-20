@@ -4,6 +4,10 @@ import math
 class Distribution():
 	def __init__(self, pvals):
 		self.Paramters = pvals
+		self.Name = None
+
+	def __str__(self):
+		return f"{self.Name} {*self.Paramters,}"
 
 	def PDF(self, x):
 		pass
@@ -16,6 +20,7 @@ class Weibull(Distribution):
 	def __init__(self, pvals):
 		super().__init__(pvals)
 
+		self.Name = "Weibull"
 		assert(len(pvals) == 2)
 
 	def PDF(self, X):
@@ -39,6 +44,7 @@ class LogNormal(Distribution):
 	def __init__(self, pvals):
 		super().__init__(pvals)
 
+		self.Name = "LogNormal"
 		assert(len(pvals) == 2)
 
 	def PDF(self, X):
@@ -62,6 +68,7 @@ class Gamma(Distribution):
 	def __init__(self, pvals):
 		super().__init__(pvals)
 
+		self.Name = "Gamma"
 		assert(len(pvals) == 2)
 
 	def PDF(self, X):
@@ -81,6 +88,7 @@ class Uniform(Distribution):
 	def __init__(self, pvals):
 		super().__init__(pvals)
 
+		self.Name = "Uniform"
 		assert(len(pvals) == 2)
 
 	def PDF(self, X):
@@ -108,6 +116,7 @@ class Chi(Distribution):
 	def __init__(self, pvals):
 		super().__init__(pvals)
 
+		self.Name = "Chi"
 		assert(len(pvals) == 1)
 
 	def PDF(self, X):
@@ -127,6 +136,7 @@ class SGamma(Distribution):
 	def __init__(self, pvals):
 		super().__init__(pvals)
 
+		self.Name = "SGamma"
 		assert(len(pvals) == 2)
 
 	def PDF(self, X):
@@ -150,7 +160,8 @@ class SGamma(Distribution):
 class Exp(Distribution):
 	def __init__(self, pvals):
 		super().__init__(pvals)
-
+		
+		self.Name = "Exp"
 		assert(len(pvals) == 1)
 
 	def PDF(self, X):
@@ -166,6 +177,7 @@ class Normal(Distribution):
 	def __init__(self, pvals):
 		super().__init__(pvals)
 
+		self.Name = "Normal"
 		assert(len(pvals) == 2)
 
 	def PDF(self, X):

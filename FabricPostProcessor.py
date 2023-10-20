@@ -11,6 +11,8 @@ from PassLogFile import PassLogFile
 from Distribution import CreateDistribution
 
 JOIN_TAXA_NAMES = False
+Z_SIGNIFICANCE  = 2.0
+Z_OVERFLOW_VAL = 100.0
 
 def PostProcess(Trees):
 	Tree = Trees[0]
@@ -49,21 +51,39 @@ def CaclSDP(ObsP, R2, SampleSize):
 	
 	return math.sqrt(Ret / (SampleSize * (1.0-R2)))
 
+def SignificanceError(Value, Distibution, Node):
 
-def GetParameterSignificance(Value, Distibution, NoEqZero, Thershold, N, CorrelR2):
+	print()
+	print(f"Cannot calculate valid probably for value {Value} using {Distibution} on node, ", end='\t')
+	TList = Node.GetTaxaList()
+	TList.sort()
+
+	print(*TList, sep=',')
+	print()
+	print("One cause of this can be, the x value is 0, if this happens it may be the all the taxa in the node have the same trait value.\n")
+	print()
+	sys.exit(1)
+
+
+def GetParameterSignificance(Value, Distibution, NoEqZero, Thershold, N, CorrelR2, Node):
 	
 	if NoEqZero == 1.0:
 		return 0, 0, 0, 0, 0
 
-	P = math.exp(math.log(Distibution.PDF(math.fabs(Value))) + Thershold)
+	try:
+		P = math.exp(math.log(Distibution.PDF(math.fabs(Value))) + Thershold)
+	except ValueError:
+		SignificanceError(Value, Distibution, Node)
+
+
 	ObsP = 1.0 - NoEqZero
 	SDObsP = CaclSDP(ObsP, CorrelR2, N)
 
 	if SDObsP != 0:
 		Z = (ObsP - P) / SDObsP
-		Sig = 1 if Z >=2 else 0
+		Sig = 1 if Z >= Z_SIGNIFICANCE else 0
 	else:
-		Z = 0
+		Z = Z_OVERFLOW_VAL
 		Sig = 1
 
 	return P, ObsP, SDObsP, Z, Sig
@@ -91,7 +111,7 @@ def OutputBeta(Node, LogFileInfo, NData):
 
 	NData.extend([Mean, SD, MeanNZ, SDNZ, len(BetaList), NoLZero, NoEZero, NoGZero])
 
-	P, ObsP, SDObsP, Z, Sig = GetParameterSignificance(MeanNZ, LogFileInfo.LandPrior, NoEZero, LogFileInfo.LandThreshold, N, LogFileInfo.LhR2)
+	P, ObsP, SDObsP, Z, Sig = GetParameterSignificance(MeanNZ, LogFileInfo.LandPrior, NoEZero, LogFileInfo.LandThreshold, N, LogFileInfo.LhR2, Node)
 	NData.extend([P, ObsP, SDObsP, Z, Sig])
 
 
@@ -117,7 +137,7 @@ def OutputSclars(Node, LogFileInfo, NData):
 
 	NData.extend([Mean, SD, MeanNO, MedianNO, SDNO, PctLOne, PctEOne, PctGOne])
 
-	P, ObsP, SDObsP, Z, Sig = GetParameterSignificance(MeanNO, LogFileInfo.NodePrior, PctEOne, LogFileInfo.NodeThreshold, N, LogFileInfo.LhR2)
+	P, ObsP, SDObsP, Z, Sig = GetParameterSignificance(MeanNO, LogFileInfo.NodePrior, PctEOne, LogFileInfo.NodeThreshold, N, LogFileInfo.LhR2, Node)
 	NData.extend([P, ObsP, SDObsP, Z, Sig])
 
 
