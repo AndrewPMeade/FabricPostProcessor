@@ -9,6 +9,7 @@ import pandas as pd
 from PassVarRates import PassVarRates
 from PassLogFile import PassLogFile
 from Distribution import CreateDistribution
+from Utilities import RecGetTaxa, GetMD5Sum
 
 JOIN_TAXA_NAMES = False
 Z_SIGNIFICANCE  = 2.0
@@ -22,24 +23,6 @@ def PostProcess(Trees):
 		Node.BetaPP = len(NonZero) / len(Node.BetaList)
 		Node.BetaListBin = [0 if x == 0 else 1 for x in Node.BetaList]
 
-def RecGetTaxa(Node, TList):
-
-	if Node.Tip == True:
-		TList.append(Node.Taxa)
-
-	for N in Node:
-		RecGetTaxa(N, TList)
-	
-def GetMD5Sum(TaxaList):
-
-	TaxaList.sort()
-
-	md5 = hashlib.md5()
-
-	for Taxa in TaxaList:
-		md5.update(Taxa.encode('utf-8'))
-	
-	return md5.hexdigest()
 
 def CaclSDP(ObsP, R2, SampleSize):
 
@@ -356,6 +339,7 @@ def main():
 
 	(Trees, Data) = PassVarRates(sys.argv[1], sys.argv[2])
 	LogFileInfo = PassLogFile(sys.argv[3])
+	
 	#SetTipHeight(Trees[0])
 
 

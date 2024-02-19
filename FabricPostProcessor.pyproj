@@ -12,7 +12,7 @@
     <Name>FabricPostProcessor</Name>
     <RootNamespace>FabricPostProcessor</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>./Data/Bug/BayesTraits_GBOTB_TRY_Genera.trees ./Data/Bug/First/GlobalTrend_Fabric_Angiosperm.VarRates.txt ./Data/Bug/First/GlobalTrend_Fabric_Angiosperm.Log.txt</CommandLineArguments>
+    <CommandLineArguments>./Data/Bug/FEBM_Tree.trees ./Data/Bug/Data-0000000.txt.VarRates.txt ./Data/Bug/Data-0000000.txt.Log.txt</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
@@ -27,6 +27,7 @@
   <ItemGroup>
     <Compile Include="Distribution.py" />
     <Compile Include="FabricPostProcessor.py" />
+    <Compile Include="MergeFabric.py" />
     <Compile Include="PassLogFile.py" />
     <Compile Include="PassVarRates.py" />
     <Compile Include="PyTrees\ConsensusesTrees.py" />
@@ -41,6 +42,7 @@
     <Compile Include="PyTrees\TreeFormat.py" />
     <Compile Include="PyTrees\Trees.py" />
     <Compile Include="PyTrees\__init__.py" />
+    <Compile Include="Utilities.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="PyTrees\" />

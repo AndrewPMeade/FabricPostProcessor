@@ -4,8 +4,10 @@ import numpy as np
 
 from Distribution import CreateDistribution
 
-LAND_PRIOR_STR = "\s+VR_LS_BL - (.+)"
+LAND_PRIOR_STR = "\s+(VR_LS_BL|FabricBeta) - (.+)"
 LAND_THRESHOLD_STR = "\s*RJ Local LandscapeBL:\s+True Threshold (.+)"
+
+
 
 NODE_PRIOR_STR = "\s+VRNode - (.+)"
 NODE_THRESHOLD_STR = "\s*RJ Local Node:\s+True Threshold(.+)"
@@ -17,10 +19,17 @@ class PassLogFile():
 
 	def __init__(self, FileName):
 
-		self.FlieName =FileName 
+		self.FlieName = FileName 
+		
+		self.LandThreshold = 0
+		self.LandPrior = CreateDistribution("uniform", [-100, 100])
+		
+		self.NodePrior = CreateDistribution("uniform", [0, 100])
+		self.NodeThreshold = 0
+
 		
 		self.__pass_file(FileName)
-		self.__check_info()
+##		self.__check_info()
 		self.__post_process()
 
 	def __post_process(self):
@@ -67,7 +76,7 @@ class PassLogFile():
 
 				Match = re.match(LAND_PRIOR_STR, Line)
 				if Match:
-					self.LandPrior = self.__pass_prior(Match[1])
+					self.LandPrior = self.__pass_prior(Match[2])
 
 				Match = re.match(LAND_THRESHOLD_STR, Line)
 				if Match:

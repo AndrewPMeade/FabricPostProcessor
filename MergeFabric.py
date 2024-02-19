@@ -1,50 +1,6 @@
 import sys
 import pandas as pd
 
-def LoadTables(FileList):
-	Tables = [pd.read_csv(FileName) for FileName in FileList]
-		
-	MasterSet = set(Tables[0]["Md5 Sum"]) 
-
-	Index = 1
-	for Table in Tables[1:]:
-
-		Diff = MasterSet ^ set(Table["Md5 Sum"]) 
-
-		if Diff:
-			print(f"Differences btween checksums for files {FileList[0]} and {FileList[Index]}")
-			print(*Diff)
-			sys.exit(1)
-
-		Index += 1
-
-	[df.set_index(df["Md5 Sum"], inplace=True) for df in Tables]
-	return Tables
-
-def CreatRow(Md5Sum, Tables):
-
-	
-
-	BetaSig = 0
-	BetaZ = []
-
-	NodeSig = 0
-	NodeZ = []
-
-	for df in Tables:
-		row = df.loc[Md5Sum]
-	
-		if row["Sig (Beta * BL)"] == 1:
-			BetaSig += 1
-
-		BetaZ.append(float(row["Z (Beta * BL)"]))
-
-		if row["Sig Scalar"] == 1:
-			NodeSig += 1
-
-		NodeZ.append(float(row["Z Scalar"]))
-				
-	return [Md5Sum, BetaSig, *BetaZ, NodeSig, *NodeZ]
 
 def CreateHeader(FileList):
 	BetaName = [f"Z (Beta * BL) - {FileName}" for FileName in FileList]
@@ -52,33 +8,44 @@ def CreateHeader(FileList):
 
 	return ["Md5 Sum", "No Sig Beta", *BetaName, "No Sig Nodes", *NodeName]
 
-def BuildCombinedDF(Tables, FileList):
 
-	
-	Data = []
-	for Md5Sum in Tables[0]["Md5 Sum"]:
-		Data.append(CreatRow(Md5Sum, Tables))
+def FastMerge(FileList):
+	df = pd.read_csv(FileList[0], low_memory=False)
 
-	return Data
+	checksum = df["Md5 Sum"].copy()
+	sig_beta = df["Sig (Beta * BL)"].copy()
+	sig_node = df["Sig Scalar"].copy()
 
-def Output(Data, FileList):
+	beta_z = [df["Z (Beta * BL)"].copy()]
+	node_z = [df["Z Scalar"].copy()]
 
-	Header = CreateHeader(FileList)	
+	for fname in FileList[1:]:
+		df_run = pd.read_csv(fname, low_memory=False)
 
-	DF = pd.DataFrame(Data, columns=Header)
-	DF.set_index("Md5 Sum", inplace=True)
-	DF.to_csv(sys.stdout,line_terminator='\n')
+		if df["Md5 Sum"].equals(df_run["Md5 Sum"]) == False:
+			print(f"Md5 Sum differs in {fname}")
+			sys.exit(1)
+		
+		sig_beta = sig_beta.add(df_run["Sig (Beta * BL)"])
+		sig_node = sig_node.add(df_run["Sig Scalar"])
+
+		beta_z.append(df_run["Z (Beta * BL)"].copy())
+		node_z.append(df_run["Z Scalar"].copy())
+
+	header = CreateHeader(FileList)
+	output = pd.DataFrame([checksum, sig_beta, *beta_z, sig_node, *node_z])
+	output = output.transpose()
+
+	output = output.set_axis(header, axis=1)
+	output.set_index("Md5 Sum", inplace=True)
+
+	output.to_csv("out.csv")
 
 
 #pyinstaller --onefile --hidden-import pandas._libs MergeFabric.py
-
-sys.stdout = open("out.csv", "w")
+# OS X 
+# pyinstaller --onefile --hidden-import pandas._libs --target-architecture x86_64 MergeFabric.py
 
 FileList = sys.argv[1:]
 
-Tables = LoadTables(FileList)
-
-Data = BuildCombinedDF(Tables, FileList)
-#for row in Data:
-#	print(row)
-Output(Data, FileList)
+FastMerge(FileList)
