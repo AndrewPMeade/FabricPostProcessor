@@ -41,7 +41,8 @@ class PassLogFile():
 		correl = np.corrcoef(lh1, lh2)
 
 		self.LhR2 = correl[0][1]**2
-
+		self.ESS = len(self.Lh) * (1.0-self.LhR2)
+		
 		return 
 
 		self.Prior.Paramters = [0.0, 1.0]

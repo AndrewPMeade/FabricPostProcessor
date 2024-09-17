@@ -15,6 +15,13 @@ JOIN_TAXA_NAMES = False
 Z_SIGNIFICANCE  = 2.0
 Z_OVERFLOW_VAL = 100.0
 
+BETA_Z_PLACE_HOLDER = "BETA_Z_PLACE_HOLDER"
+SCALAR_Z_PLACE_HOLDER = "SCALAR_Z_PLACE_HOLDER"
+
+BETA_SIG_PLACE_HOLDER = "BETA_SIG_PLACE_HOLDER"
+SCALAR_SIG_PLACE_HOLDER = "SCALAR_SIG_PLACE_HOLDER"
+
+
 def PostProcess(Trees):
 	Tree = Trees[0]
 
@@ -24,15 +31,14 @@ def PostProcess(Trees):
 		Node.BetaListBin = [0 if x == 0 else 1 for x in Node.BetaList]
 
 
-def CaclSDP(ObsP, R2, SampleSize):
+def CaclSDP(ObsP, ESS):
 
 	if ObsP == 1:
 		return 0
 
 	Ret = ObsP * (1.0 - ObsP)
-
 	
-	return math.sqrt(Ret / (SampleSize * (1.0-R2)))
+	return math.sqrt(Ret / ESS)
 
 def SignificanceError(Value, Distibution, Node):
 
@@ -48,7 +54,7 @@ def SignificanceError(Value, Distibution, Node):
 	sys.exit(1)
 
 
-def GetParameterSignificance(Value, Distibution, NoEqZero, Thershold, N, CorrelR2, Node):
+def GetParameterSignificance(Value, Distibution, NoEqZero, Thershold, N, CorrelR2, ESS, Node):
 	
 	if NoEqZero == 1.0:
 		return 0, 0, 0, 0, 0
@@ -60,7 +66,7 @@ def GetParameterSignificance(Value, Distibution, NoEqZero, Thershold, N, CorrelR
 
 
 	ObsP = 1.0 - NoEqZero
-	SDObsP = CaclSDP(ObsP, CorrelR2, N)
+	SDObsP = CaclSDP(ObsP, ESS)
 
 	if SDObsP != 0:
 		Z = (ObsP - P) / SDObsP
@@ -71,6 +77,15 @@ def GetParameterSignificance(Value, Distibution, NoEqZero, Thershold, N, CorrelR
 
 	return P, ObsP, SDObsP, Z, Sig
 
+def MakeSigInfo(P, ObsP, SDObsP, Z, Sig):
+	SigInfo = {}
+	SigInfo["P"] = P
+	SigInfo["ObsP"] = ObsP
+	SigInfo["SDObsP"] = SDObsP
+	SigInfo["Z"] = Z
+	SigInfo["Sig"] = Sig
+
+	return SigInfo
 
 def OutputBeta(Node, LogFileInfo, NData):
 
@@ -92,10 +107,13 @@ def OutputBeta(Node, LogFileInfo, NData):
 	NoLZero = len([x for x in BetaList if x < 0]) / N
 	NoEZero = len([x for x in BetaList if x == 0]) / N
 
-	NData.extend([Mean, SD, MeanNZ, SDNZ, len(BetaList), NoLZero, NoEZero, NoGZero])
+	NData.extend([Mean, SD, MeanNZ, SDNZ, len(BetaList), LogFileInfo.ESS, NoLZero, NoEZero, NoGZero])
 
-	P, ObsP, SDObsP, Z, Sig = GetParameterSignificance(MeanNZ, LogFileInfo.LandPrior, NoEZero, LogFileInfo.LandThreshold, N, LogFileInfo.LhR2, Node)
-	NData.extend([P, ObsP, SDObsP, Z, Sig])
+	P, ObsP, SDObsP, Z, Sig = GetParameterSignificance(MeanNZ, LogFileInfo.LandPrior, NoEZero, LogFileInfo.LandThreshold, N, LogFileInfo.LhR2, LogFileInfo.ESS, Node)
+
+	Node.BetaSigInfo = MakeSigInfo(P, ObsP, SDObsP, Z, Sig)
+
+	NData.extend([P, ObsP, SDObsP, BETA_Z_PLACE_HOLDER, BETA_SIG_PLACE_HOLDER])
 
 
 def OutputSclars(Node, LogFileInfo, NData):
@@ -120,9 +138,11 @@ def OutputSclars(Node, LogFileInfo, NData):
 
 	NData.extend([Mean, SD, MeanNO, MedianNO, SDNO, PctLOne, PctEOne, PctGOne])
 
-	P, ObsP, SDObsP, Z, Sig = GetParameterSignificance(MeanNO, LogFileInfo.NodePrior, PctEOne, LogFileInfo.NodeThreshold, N, LogFileInfo.LhR2, Node)
-	NData.extend([P, ObsP, SDObsP, Z, Sig])
+	P, ObsP, SDObsP, Z, Sig = GetParameterSignificance(MeanNO, LogFileInfo.NodePrior, PctEOne, LogFileInfo.NodeThreshold, N, LogFileInfo.LhR2, LogFileInfo.ESS, Node)
 
+	Node.ScalarSigInfo = MakeSigInfo(P, ObsP, SDObsP, Z, Sig)
+
+	NData.extend([P, ObsP, SDObsP, SCALAR_Z_PLACE_HOLDER, SCALAR_SIG_PLACE_HOLDER])
 
 
 def BetaNodeCoOccurrence(Node):
@@ -151,6 +171,8 @@ def OutputCoOccurrence(Node, NData):
 	Freq, Denominator = BetaNodeCoOccurrence(Node)
 
 	NData.extend([Freq, Denominator])
+
+	return Freq, Denominator
 
 def ThenBeta(Pos, Node):
 
@@ -222,7 +244,7 @@ def GetHeader():
 	Ret.extend(["ID", "Branch Length", "Height",  "Height Mid-Point", "Sum BL", "No Descendants"])
 	Ret.extend(["No Concurrent Linages Start", "No Concurrent Linages Mid-point", "No Concurrent Linages End"])
 
-	Ret.extend(["Mean (Beta * BL)","SD (Beta * BL)", "Mean (Beta * BL) NZ", "SD (Beta * BL) NZ", "Sample Size", "P < 0", "P == 0", "P > 0"])
+	Ret.extend(["Mean (Beta * BL)","SD (Beta * BL)", "Mean (Beta * BL) NZ", "SD (Beta * BL) NZ", "Sample Size", "ESS", "P < 0", "P == 0", "P > 0"])
 	Ret.extend(["P (Beta * BL)","Observed P (Beta * BL)","SD Observed P(Beta * BL)","Z (Beta * BL)","Sig (Beta * BL)"])
 
 	Ret.extend(["Mean Scalar","SD Scalar","Mean Non 1 Scalar", "Median Non 1", "SD Non 1 Scalar", "P < 1", "P == 1", "P > 1"])
@@ -230,6 +252,7 @@ def GetHeader():
 
 	Ret.extend(["Prop beta followed by a variance scalar", "No Beta or Node"])
 	Ret.extend(["Prop Variance scalar followed by a beta ", "Prop Beta on Dec Nodes"])
+	Ret.extend(["Beta Scalar Trade off"])
 	Ret.extend(["Md5 Sum","No Taxa"])
 
 	return Ret
@@ -273,7 +296,64 @@ def SaveData(Data, VarRatesFN):
 
 	df.to_csv(f"{VarRatesFN}.csv")
 	
+def SetRowBetaZScalarZ(Row, BetaZ, SclarZ):
+	Row[Row.index(BETA_Z_PLACE_HOLDER)] = BetaZ
+	Row[Row.index(SCALAR_Z_PLACE_HOLDER)] = SclarZ
 
+	Row[Row.index(BETA_SIG_PLACE_HOLDER)] = 1 if BetaZ >= Z_SIGNIFICANCE else 0
+	Row[Row.index(SCALAR_SIG_PLACE_HOLDER)] = 1 if SclarZ >= Z_SIGNIFICANCE else 0
+
+
+def AssingBetaNode(Row, Node, ZObsChancePairing, TradeOff):
+	if ZObsChancePairing >= -2:
+		SetRowBetaZScalarZ(Row, Node.BetaSigInfo["Z"], Node.ScalarSigInfo["Z"])
+
+		if ZObsChancePairing >= 2:
+			Row.append("Retain Both - positively correlated")
+		else:
+			Row.append("Retain Both - indeterminate")
+
+		return
+
+	if TradeOff >= 2:
+		Row.append("Retain Beta")
+		SetRowBetaZScalarZ(Row, Node.BetaSigInfo["Z"], 0.0)
+		return
+		
+	if TradeOff <= -2:
+		Row.append("Retain Node")
+		SetRowBetaZScalarZ(Row, 0.0, Node.ScalarSigInfo["Z"])
+		return
+
+	SetRowBetaZScalarZ(Row, Node.BetaSigInfo["Z"], Node.ScalarSigInfo["Z"])
+	Row.append("Retain Both - indeterminate")
+
+def SetNodeBetaTraidOff(Node, Row, ESS, PropBetaVarScalar):
+	
+	if Node.BetaSigInfo["Sig"] == 0 or Node.ScalarSigInfo["Sig"] == 0:
+		SetRowBetaZScalarZ(Row, Node.BetaSigInfo["Z"], Node.ScalarSigInfo["Z"])
+		Row.append("No Change")
+		return 
+
+	BSInfo = Node.BetaSigInfo
+	SSInfo = Node.ScalarSigInfo
+
+	
+	ChancePairing = BSInfo["ObsP"]  * SSInfo["ObsP"] 
+		
+	A = (ChancePairing + PropBetaVarScalar) / 2
+	A = A * (1.0 - A)
+	A = A / ESS
+	ZObsChancePairing = (PropBetaVarScalar - ChancePairing) / math.sqrt(A)
+
+
+	A = (BSInfo["ObsP"] + SSInfo["ObsP"]) / 2.0 
+	A = A * (1.0 - A)
+	A = math.sqrt(A / ESS)
+	TradeOff = (BSInfo["ObsP"] - SSInfo["ObsP"]) / A
+
+	AssingBetaNode(Row, Node, ZObsChancePairing, TradeOff)
+	
 
 def CreateData(Trees, LogFileInfo):
 
@@ -303,16 +383,18 @@ def CreateData(Trees, LogFileInfo):
 
 		OutputSclars(Node, LogFileInfo, NData)
 
-		OutputCoOccurrence(Node, NData)
+		PropBetaVarScalar, _ = OutputCoOccurrence(Node, NData)
 		
 		NodeTBeta = PropNodeThenBeta(Node)
 		PropOnDecBeta = GetPropDecBeta(Node)
 
 		NData.extend([NodeTBeta, PropOnDecBeta])
+		
+		SetNodeBetaTraidOff(Node, NData, LogFileInfo.ESS, PropBetaVarScalar)
 
 		TList = Node.GetTaxaList()
 		TList.sort()
-
+		
 		NData.extend([GetMD5Sum(TList), len(TList)])
 
 		if JOIN_TAXA_NAMES == False:

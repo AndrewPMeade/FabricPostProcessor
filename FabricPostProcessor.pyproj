@@ -7,12 +7,12 @@
     <StartupFile>FabricPostProcessor.py</StartupFile>
     <SearchPath>
     </SearchPath>
-    <WorkingDirectory>.</WorkingDirectory>
+    <WorkingDirectory>D:\Dev\Python\SelectionModel\FabricPostProcessor\Data\NodeBetaTraidOff\MammalLandGT</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>FabricPostProcessor</Name>
     <RootNamespace>FabricPostProcessor</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>./Data/Bug/FEBM_Tree.trees ./Data/Bug/Data-0000000.txt.VarRates.txt ./Data/Bug/Data-0000000.txt.Log.txt</CommandLineArguments>
+    <CommandLineArguments>Mammals_n3399_edited_polytomiesHard.trees Data-0000000.txt.VarRates.txt Data-0000000.txt.Log.txt</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
