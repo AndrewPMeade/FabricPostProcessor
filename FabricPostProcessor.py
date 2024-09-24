@@ -337,9 +337,13 @@ def SetNodeBetaTraidOff(Node, Row, ESS, PropBetaVarScalar):
 
 	BSInfo = Node.BetaSigInfo
 	SSInfo = Node.ScalarSigInfo
+		
+	ChancePairing = BSInfo["ObsP"]  * SSInfo["ObsP"]
 
-	
-	ChancePairing = BSInfo["ObsP"]  * SSInfo["ObsP"] 
+	if ChancePairing == 1.0:
+		SetRowBetaZScalarZ(Row, Node.BetaSigInfo["Z"], Node.ScalarSigInfo["Z"])
+		Row.append("Retain Both - both present 100% ")
+		return 
 		
 	A = (ChancePairing + PropBetaVarScalar) / 2
 	A = A * (1.0 - A)
