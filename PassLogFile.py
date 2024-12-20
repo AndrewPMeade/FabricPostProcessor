@@ -5,12 +5,12 @@ import numpy as np
 from Distribution import CreateDistribution
 
 LAND_PRIOR_STR = "\s+(VR_LS_BL|FabricBeta) - (.+)"
-LAND_THRESHOLD_STR = "\s*RJ Local LandscapeBL:\s+True Threshold (.+)"
+LAND_THRESHOLD_STR = "\s*RJ Local (?:LandscapeBL|fabricbeta|FabricBeta):\s+True Threshold (.+)"
 
 
 
 NODE_PRIOR_STR = "\s+VRNode - (.+)"
-NODE_THRESHOLD_STR = "\s*RJ Local Node:\s+True Threshold(.+)"
+NODE_THRESHOLD_STR = "\s*RJ Local (?:Node|node):\s+True Threshold(.+)"
 
 HEADER_STR = "Iteration	Lh"
 
