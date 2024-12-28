@@ -1,0 +1,29 @@
+PyInstaller can be a little fussy about hidden imports, the versions of the packages below work. 
+
+The commands below see to be enough. 
+pip3 list
+pip3 install scipy==1.8.0
+pip3 install pyinstaller==4.9
+pip3 install ply==3.11
+pip3 install pandas==1.4.1
+
+altgraph                  0.17.2
+numpy                     1.22.2
+pandas                    1.4.1
+pip                       21.2.3
+ply                       3.11
+pyinstaller               4.9
+pyinstaller-hooks-contrib 2022.2
+python-dateutil           2.8.2
+pytz                      2021.3
+scipy                     1.8.0
+setuptools                57.4.0
+six                       1.16.0
+
+
+then 
+
+# pyinstaller --onefile --hidden-import pandas._libs FabricPostProcessor.py
+
+# OS X 
+# pyinstaller --onefile --hidden-import pandas._libs --target-architecture x86_64 FabricPostProcessor.py

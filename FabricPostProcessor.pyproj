@@ -12,7 +12,7 @@
     <Name>FabricPostProcessor</Name>
     <RootNamespace>FabricPostProcessor</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>MammalVertebraeColapsedBLCutDown.trees Data-0000000.txt.VarRates.txt Data-0000000.txt.Log.txt</CommandLineArguments>
+    <CommandLineArguments>Mammal.trees MammalBr.txt.VarRates.txt MammalBr.txt.Log.txt</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
